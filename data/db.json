@@ -1,0 +1,26 @@
+{
+  "users": [
+    {
+      "id": "36023d27-e27e-464c-87cc-ed2ab63dfca5",
+      "name": "Prakash More",
+      "email": "prakashmore6144@gmail.com",
+      "password": "$2a$10$D4Vr5v6oDuLmLHkIo0/Ygefu/wQWqW40UiI3OYDDrSNZp9.gCuX9u",
+      "subscribed": true,
+      "createdAt": "2026-08-25T06:35:08.159Z",
+      "subscribedAt": "2026-08-25T12:55:05.181Z",
+      "lastPaymentId": "pay_TU0fnhHXiaFT6c",
+      "lastOrderId": "order_TU0er1RT6NhsYs"
+    },
+    {
+      "id": "9ec2e4f3-6b70-44b5-b6a1-0884ffab0cd7",
+      "name": "Gaurav",
+      "email": "gauravgardade7@gmail.com",
+      "password": "$2a$10$I6/BnfJL9hAm0OXqkJzXJ.a.gxig71b1.8HX7k6BDXI21F/mkIMNW",
+      "subscribed": true,
+      "createdAt": "2026-08-25T12:56:43.747Z",
+      "subscribedAt": "2026-08-25T13:14:56.498Z",
+      "lastPaymentId": "pay_TU10s7Z7y9Lq2x",
+      "lastOrderId": "order_TU10HAhpeBVdvh"
+    }
+  ]
+}

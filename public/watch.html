@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070b1c">
+  <title>Watching | NextGen FX</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="/dashboard.html" class="brand-mark">▶</a>
+    <div class="header-text">
+      <h1 id="pageTitle">Loading...</h1>
+      <p>Alpha Forex • Full Course</p>
+    </div>
+    <div class="topbar-actions" id="authNav"></div>
+  </header>
+
+  <main class="page">
+    <div id="lockedMsg" class="center-msg" style="display:none;">
+      <p>You need to unlock the course to watch this video.</p>
+      <br>
+      <a href="/dashboard.html" class="pill-btn">Go to dashboard</a>
+    </div>
+
+    <div id="playerWrap" style="display:none;">
+      <section class="video-card" aria-label="Video player">
+        <div class="player">
+
+          <video id="video" preload="metadata" playsinline>
+            Your browser does not support HTML5 video.
+          </video>
+
+          <div class="top-overlay">
+            <div class="course-avatar">G</div>
+            <div class="course-info">
+              <strong>NextGen FX</strong>
+              <span id="courseLabel">SSC CGL 2026</span>
+            </div>
+            <div class="top-actions">
+              <button id="muteBtn" class="icon-btn" title="Mute">🔊</button>
+              <button id="settingsBtn" class="icon-btn" title="Settings">⚙</button>
+            </div>
+          </div>
+
+          <button id="bigPlay" class="big-play" aria-label="Play">▶</button>
+
+          <div id="settingsMenu" class="settings-menu">
+            <div class="settings-title">Playback speed</div>
+            <button data-speed="0.5">0.5×</button>
+            <button data-speed="0.75">0.75×</button>
+            <button data-speed="1" class="active">Normal</button>
+            <button data-speed="1.25">1.25×</button>
+            <button data-speed="1.5">1.5×</button>
+            <button data-speed="2">2×</button>
+          </div>
+
+          <div class="controls">
+            <div class="progress-row">
+              <input id="progress" type="range" min="0" max="100" value="0" step="0.1">
+            </div>
+
+            <div class="control-row">
+              <button id="playBtn" class="control-btn" title="Play/Pause">▶</button>
+              <div class="time">
+                <span id="currentTime">0:00</span>
+                <span>/</span>
+                <span id="duration">0:00</span>
+              </div>
+              <div class="spacer"></div>
+              <button id="skipBack" class="control-btn" title="Back 10 seconds">↶10</button>
+              <button id="skipForward" class="control-btn" title="Forward 10 seconds">10↷</button>
+              <button id="fullscreenBtn" class="control-btn" title="Fullscreen">⛶</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="details">
+        <p class="eyebrow">NextGen FX</p>
+        <h2 id="videoTitle"></h2>
+        <p class="description" id="videoDescription"></p>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/player.js"></script>
+</body>
+</html>

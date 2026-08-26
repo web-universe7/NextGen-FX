@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070b1c">
+  <title>Sign Up | NextGen FX</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="/" class="brand-mark">▶</a>
+    <div class="header-text">
+      <h1>NextGen FX</h1>
+      <p>Create your account</p>
+    </div>
+  </header>
+
+  <main class="page narrow">
+    <div class="card">
+      <h2>Create your account</h2>
+      <p class="subtitle">Sign up to enroll in the Forex A to Z 2026 course.</p>
+
+      <div class="form-msg" id="formMsg"></div>
+
+      <form id="registerForm">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="new-password" minlength="6" required>
+        </div>
+        <button type="submit" class="pill-btn" id="submitBtn" style="width:100%;">Create account</button>
+      </form>
+
+      <p class="form-footnote">Already have an account? <a href="/login.html" style="color:#00d084;">Log in</a></p>
+    </div>
+  </main>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    (async () => {
+      const existing = await getCurrentUser();
+      if (existing) window.location.href = '/dashboard.html';
+    })();
+
+    const form = document.getElementById('registerForm');
+    const msg = document.getElementById('formMsg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      msg.classList.remove('success');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account...';
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        await apiFetch('/api/register', { method: 'POST', body: JSON.stringify({ name, email, password }) });
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        msg.textContent = err.message;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create account';
+      }
+    });
+  </script>
+</body>
+</html>

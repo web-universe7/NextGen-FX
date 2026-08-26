@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070b1c">
+  <title>Log In | NextGen FX</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="/" class="brand-mark">▶</a>
+    <div class="header-text">
+      <h1>NextGen FX</h1>
+      <p>Log in to your account</p>
+    </div>
+  </header>
+
+  <main class="page narrow">
+    <div class="card">
+      <h2>Welcome back</h2>
+      <p class="subtitle">Log in to continue watching your course.</p>
+
+      <div class="form-msg" id="formMsg"></div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="pill-btn" id="submitBtn" style="width:100%;">Log in</button>
+      </form>
+
+      <p class="form-footnote">Don't have an account? <a href="/register.html" style="color:#00d084;">Sign up</a></p>
+    </div>
+  </main>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    (async () => {
+      const existing = await getCurrentUser();
+      if (existing) window.location.href = '/dashboard.html';
+    })();
+
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('formMsg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Logging in...';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = params.get('next') || '/dashboard.html';
+      } catch (err) {
+        msg.textContent = err.message;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Log in';
+      }
+    });
+  </script>
+</body>
+</html>

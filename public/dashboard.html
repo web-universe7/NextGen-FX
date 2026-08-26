@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#070b1c"
+  >
+
+  <title>
+    Dashboard | NextGen FX
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="/css/style.css"
+  >
+
+  <!-- Razorpay Checkout -->
+  <script
+    src="https://checkout.razorpay.com/v1/checkout.js">
+  </script>
+
+</head>
+
+<body>
+
+  <!-- ======================================================
+       HEADER
+  ======================================================= -->
+
+  <header class="topbar">
+
+    <a
+      href="/"
+      class="brand-mark"
+    >
+      ▶
+    </a>
+
+    <div class="header-text">
+
+      <h1>
+        NextGen FX
+      </h1>
+
+      <p>
+        Your course dashboard
+      </p>
+
+    </div>
+
+    <div
+      class="topbar-actions"
+      id="authNav">
+    </div>
+
+  </header>
+
+
+  <!-- ======================================================
+       MAIN
+  ======================================================= -->
+
+  <main class="page">
+
+    <div class="dash-header">
+
+      <div>
+
+        <h2 id="welcomeMsg">
+          Welcome
+        </h2>
+
+        <p>
+          Forex 2026 — recorded video course
+        </p>
+
+      </div>
+
+      <span
+        class="status-chip"
+        id="statusChip">
+      </span>
+
+    </div>
+
+
+    <!-- Message -->
+
+    <div
+      class="form-msg"
+      id="pageMsg"
+      style="margin-bottom:14px;">
+    </div>
+
+
+    <!-- ====================================================
+         PAYMENT SECTION
+    ===================================================== -->
+
+    <div
+      class="paywall-banner"
+      id="paywallBanner"
+      style="display:none;">
+
+      <div>
+
+        <strong>
+          Unlock the full course — ₹499
+        </strong>
+
+        <span>
+          One-time payment. Lifetime access to every
+          recorded class.
+        </span>
+
+      </div>
+
+      <button
+        class="pill-btn"
+        id="enrollBtn"
+        type="button">
+
+        Pay ₹499 &amp; Unlock
+
+      </button>
+
+    </div>
+
+
+    <!-- ====================================================
+         VIDEOS
+    ===================================================== -->
+
+    <div
+      class="video-grid"
+      id="videoGrid">
+
+      <p class="center-msg">
+        Loading your videos...
+      </p>
+
+    </div>
+
+  </main>
+
+
+  <!-- Toast -->
+
+  <div
+    id="toast"
+    class="toast">
+  </div>
+
+
+  <!-- Authentication -->
+
+  <script src="/js/auth.js"></script>
+
+
+  <!-- ======================================================
+       DASHBOARD SCRIPT
+  ======================================================= -->
+
+  <script>
+
+    const statusChip =
+      document.getElementById(
+        'statusChip'
+      );
+
+    const paywallBanner =
+      document.getElementById(
+        'paywallBanner'
+      );
+
+    const videoGrid =
+      document.getElementById(
+        'videoGrid'
+      );
+
+    const enrollBtn =
+      document.getElementById(
+        'enrollBtn'
+      );
+
+    const pageMsg =
+      document.getElementById(
+        'pageMsg'
+      );
+
+    const toast =
+      document.getElementById(
+        'toast'
+      );
+
+
+    let currentUser = null;
+
+
+    // ======================================================
+    // TOAST
+    // ======================================================
+
+    function showToast(message) {
+
+      toast.textContent =
+        message;
+
+      toast.classList.add(
+        'show'
+      );
+
+      clearTimeout(
+        window.toastTimer
+      );
+
+      window.toastTimer =
+        setTimeout(
+          () => {
+            toast.classList.remove(
+              'show'
+            );
+          },
+          3000
+        );
+    }
+
+
+    // ======================================================
+    // ERROR MESSAGE
+    // ======================================================
+
+    function showPaymentError(
+      message
+    ) {
+
+      pageMsg.textContent =
+        message;
+
+      pageMsg.style.color =
+        '#ff4d6d';
+
+      enrollBtn.disabled =
+        false;
+
+      enrollBtn.textContent =
+        'Pay ₹499 & Unlock';
+    }
+
+
+    // ======================================================
+    // INIT
+    // ======================================================
+
+    async function init() {
+
+      try {
+
+        currentUser =
+          await requireLogin();
+
+        if (!currentUser) {
+          return;
+        }
+
+        renderAuthNav(
+          'authNav'
+        );
+
+        const firstName =
+          currentUser.name
+            .split(' ')[0];
+
+        document.getElementById(
+          'welcomeMsg'
+        ).textContent =
+          `Welcome, ${firstName}`;
+
+
+        // ================================================
+        // SUBSCRIBED USER
+        // ================================================
+
+        if (
+          currentUser.subscribed
+        ) {
+
+          statusChip.textContent =
+            'Subscribed — full access';
+
+          statusChip.classList.add(
+            'paid'
+          );
+
+          paywallBanner.style.display =
+            'none';
+
+        }
+
+        // ================================================
+        // FREE USER
+        // ================================================
+
+        else {
+
+          statusChip.textContent =
+            'Free account';
+
+          statusChip.classList.add(
+            'free'
+          );
+
+          paywallBanner.style.display =
+            'flex';
+        }
+
+
+        await loadVideos();
+
+
+        const params =
+          new URLSearchParams(
+            window.location.search
+          );
+
+        if (
+          params.get(
+            'payment'
+          ) === 'success'
+        ) {
+
+          showToast(
+            'Payment successful! Enjoy the course.'
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          'Dashboard initialization error:',
+          error
+        );
+
+        pageMsg.textContent =
+          error.message ||
+          'Could not load dashboard.';
+      }
+    }
+
+
+    // ======================================================
+    // LOAD VIDEOS
+    // ======================================================
+
+    async function loadVideos() {
+
+      try {
+
+        const videos =
+          await apiFetch(
+            '/api/videos'
+          );
+
+        if (
+          !videos ||
+          !videos.length
+        ) {
+
+          videoGrid.innerHTML =
+            `
+              <p class="center-msg">
+                No videos have been added yet.
+                Check back soon.
+              </p>
+            `;
+
+          return;
+        }
+
+
+        videoGrid.innerHTML =
+          videos
+            .map(
+              v => `
+
+                <a
+                  class="video-tile"
+                  href="${
+                    v.locked
+                      ? '#'
+                      : '/watch.html?id=' +
+                        encodeURIComponent(
+                          v.id
+                        )
+                  }"
+                  data-locked="${
+                    v.locked
+                  }"
+                  data-id="${
+                    v.id
+                  }"
+                >
+
+                  <div class="thumb-wrap">
+
+                    <img
+                      src="${
+                        v.poster
+                      }"
+                      alt="${
+                        escapeHtml(
+                          v.title
+                        )
+                      }"
+                    >
+
+                    ${
+                      v.locked
+                        ? '<div class="lock-overlay">🔒</div>'
+                        : ''
+                    }
+
+                  </div>
+
+                  <div class="tile-body">
+
+                    <strong>
+                      ${
+                        escapeHtml(
+                          v.title
+                        )
+                      }
+                    </strong>
+
+                    <span>
+                      ${
+                        v.locked
+                          ? 'Unlock with ₹499 course access'
+                          : escapeHtml(
+                              v.description
+                            )
+                      }
+                    </span>
+
+                  </div>
+
+                </a>
+              `
+            )
+            .join('');
+
+
+        videoGrid
+          .querySelectorAll(
+            '.video-tile[data-locked="true"]'
+          )
+          .forEach(
+            tile => {
+
+              tile.addEventListener(
+                'click',
+                event => {
+
+                  event.preventDefault();
+
+                  paywallBanner.scrollIntoView(
+                    {
+                      behavior:
+                        'smooth'
+                    }
+                  );
+
+                  showToast(
+                    'Unlock the course to watch this video.'
+                  );
+                }
+              );
+            }
+          );
+
+      } catch (error) {
+
+        console.error(
+          'Video loading error:',
+          error
+        );
+
+        videoGrid.innerHTML =
+          `
+            <p class="center-msg">
+              ${
+                escapeHtml(
+                  error.message
+                )
+              }
+            </p>
+          `;
+      }
+    }
+
+
+    // ======================================================
+    // PAYMENT
+    // ======================================================
+
+    enrollBtn.addEventListener(
+      'click',
+      async () => {
+
+        pageMsg.textContent =
+          '';
+
+        enrollBtn.disabled =
+          true;
+
+        enrollBtn.textContent =
+          'Checking payment...';
+
+
+        try {
+
+          // ==============================================
+          // CHECK RAZORPAY CONFIGURATION
+          // ==============================================
+
+          const config =
+            await apiFetch(
+              '/api/payment/config'
+            );
+
+          console.log(
+            'Payment config:',
+            config
+          );
+
+
+          if (
+            !config.configured
+          ) {
+
+            throw new Error(
+              'Razorpay is not configured on the server. Check your .env file.'
+            );
+          }
+
+
+          if (
+            !config.keyId
+          ) {
+
+            throw new Error(
+              'Razorpay Key ID was not returned by the server.'
+            );
+          }
+
+
+          // ==============================================
+          // CREATE ORDER
+          // ==============================================
+
+          enrollBtn.textContent =
+            'Creating order...';
+
+          const order =
+            await apiFetch(
+              '/api/payment/create-order',
+              {
+                method:
+                  'POST'
+              }
+            );
+
+
+          console.log(
+            'Razorpay order:',
+            order
+          );
+
+
+          if (
+            !order ||
+            !order.orderId
+          ) {
+
+            throw new Error(
+              'Razorpay order ID was not received.'
+            );
+          }
+
+
+          // ==============================================
+          // CHECK RAZORPAY SDK
+          // ==============================================
+
+          if (
+            typeof Razorpay ===
+            'undefined'
+          ) {
+
+            throw new Error(
+              'Razorpay Checkout could not be loaded. Check your internet connection and refresh the page.'
+            );
+          }
+
+
+          // ==============================================
+          // CHECK USER
+          // ==============================================
+
+          if (
+            !currentUser
+          ) {
+
+            throw new Error(
+              'Your login session is missing. Please log in again.'
+            );
+          }
+
+
+          // ==============================================
+          // RAZORPAY OPTIONS
+          // ==============================================
+
+          const options = {
+
+            key:
+              order.keyId,
+
+            amount:
+              order.amount,
+
+            currency:
+              order.currency,
+
+            name:
+              'Gaurav Career Academy',
+
+            description:
+              'SSC CGL 2026 — Full Course Access',
+
+            order_id:
+              order.orderId,
+
+            prefill: {
+
+              name:
+                currentUser.name,
+
+              email:
+                currentUser.email
+            },
+
+            theme: {
+
+              color:
+                '#00d084'
+            },
+
+
+            handler:
+              async function (
+                response
+              ) {
+
+                console.log(
+                  'Razorpay payment response:',
+                  response
+                );
+
+
+                try {
+
+                  pageMsg.textContent =
+                    'Verifying payment...';
+
+
+                  await apiFetch(
+                    '/api/payment/verify',
+                    {
+                      method:
+                        'POST',
+
+                      body:
+                        JSON.stringify({
+
+                          razorpay_order_id:
+                            response.razorpay_order_id,
+
+                          razorpay_payment_id:
+                            response.razorpay_payment_id,
+
+                          razorpay_signature:
+                            response.razorpay_signature
+                        })
+                    }
+                  );
+
+
+                  window.location.href =
+                    '/dashboard.html?payment=success';
+
+                } catch (
+                  verifyError
+                ) {
+
+                  console.error(
+                    'Payment verification error:',
+                    verifyError
+                  );
+
+                  showPaymentError(
+                    'Payment succeeded, but verification failed: ' +
+                    verifyError.message
+                  );
+                }
+              },
+
+
+            modal: {
+
+              ondismiss:
+                function () {
+
+                  enrollBtn.disabled =
+                    false;
+
+                  enrollBtn.textContent =
+                    'Pay ₹499 & Unlock';
+
+                  pageMsg.textContent =
+                    '';
+                }
+            }
+          };
+
+
+          // ==============================================
+          // OPEN RAZORPAY
+          // ==============================================
+
+          enrollBtn.textContent =
+            'Opening Razorpay...';
+
+
+          const rzp =
+            new Razorpay(
+              options
+            );
+
+
+          rzp.on(
+            'payment.failed',
+            function (
+              response
+            ) {
+
+              console.error(
+                'Razorpay payment failed:',
+                response
+              );
+
+
+              const description =
+                response &&
+                response.error &&
+                response.error.description
+                  ? response.error.description
+                  : 'Payment failed. Please try again.';
+
+
+              showPaymentError(
+                'Payment failed: ' +
+                description
+              );
+            }
+          );
+
+
+          rzp.open();
+
+
+        } catch (error) {
+
+          console.error(
+            'PAYMENT START ERROR:',
+            error
+          );
+
+
+          showPaymentError(
+            error.message ||
+            'Could not start the payment. Please try again.'
+          );
+        }
+
+      }
+    );
+
+
+    // ======================================================
+    // START
+    // ======================================================
+
+    init();
+
+  </script>
+
+</body>
+
+</html>
